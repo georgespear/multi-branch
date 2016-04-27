@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+  <plugin-info>
+    <description>${project.description}</description>
+    <version>${project.version}</version>
+    <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+    <param name="plugin-icon">images/icon.png</param>
+    <param name="plugin-logo">images/icon.png</param>
+    <param name="atlassian-data-center-compatible">true</param>
+  </plugin-info>
+  
+  <!-- add our i18n resource -->
+  <resource type="i18n" name="i18n" location="multi-branch"/>
+  
+  <!-- add our components resources -->
+  <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
+  <component-import key="i18nService" interface="com.atlassian.bitbucket.i18n.I18nService"/>
+  <component key="SettingsService" class="com.spear.bitbucket.multibranch.helper.SettingsService"/>
+  <component key="PullRequestHook" class="com.spear.bitbucket.multibranch.PullRequestHook"/>
+  <component key="Jenkins" class="com.spear.bitbucket.multibranch.ciserver.Jenkins"/>
+  
+  <!-- add our web resources -->
+  <web-resource key="multi-branch-resources" name="Parameterized Builds Web Resources">
+    <dependency>com.atlassian.auiplugin:ajs</dependency>
+    <resource type="download" name="multi-branch.js" location="/scripts/multi-branch.js"/>
+    <resource type="download" name="images/" location="/images"/>
+    <context>multi-branch</context>
+  </web-resource>
+  
+  <!-- Hook config css resource -->
+  <web-resource key="multi-branch-hook-css">
+    <transformation extension="less">
+      <transformer key="less-transformer"/>
+    </transformation>
+    <resource type="download" name="hooks.css" location="/less/hooks.less"/>
+    <context>bitbucket.page.repository.settings.hooks</context>
+  </web-resource>
+  
+  <!-- Pullrequest trigger button resource -->
+  <web-resource key="pb-pr-trigger-resource">
+    <resource type="download" name="pb-pr-trigger.js" location="/scripts/jenkins/pb-pr-trigger.js"/>
+    <dependency>${project.groupId}.${project.artifactId}:build-dialog</dependency>
+    <context>bitbucket.page.pullRequest.view</context>
+  </web-resource>
+  
+  <!-- Layout trigger button resource -->
+  <web-resource key="pb-blayout-trigger-resource" name="Jenkins branch build layout resource">
+    <resource name="pb-blayout-trigger.js" type="download" location="/scripts/jenkins/pb-blayout-trigger.js"/>
+    <dependency>${project.groupId}.${project.artifactId}:build-dialog</dependency>
+  </web-resource>
+  
+  <!-- List button resource -->
+  <web-resource key="pb-blist-trigger-resource" name="Jenkins branch build list resource">
+    <resource name="pb-blist-trigger.js" type="download" location="/scripts/jenkins/pb-blist-trigger.js"/>
+    <dependency>${project.groupId}.${project.artifactId}:build-dialog</dependency>
+  </web-resource>
+  
+  <!-- Jenkins JS build feature -->
+  <web-resource name="Jenkins Branch Build Feature" i18n-name-key="build-dialog.name" key="build-dialog">
+    <transformation extension="soy">
+      <transformer key="soyTransformer"/>
+    </transformation>
+    <resource name="build-dialog.js" type="download" location="/scripts/jenkins/feature/build-dialog.js"/>
+    <resource name="build-dialog.soy.js" type="download" location="/scripts/jenkins/feature/build-dialog.soy"/>
+    <directory location="/scripts/jenkins/feature/"/>
+    <dependency>com.atlassian.bitbucket.server.bitbucket-web:global</dependency>
+    <dependency>com.atlassian.auiplugin:aui-flag</dependency>
+    <dependency>com.atlassian.auiplugin:ajs</dependency>
+  </web-resource>
+  
+  <!-- Hook -->
+  <repository-hook name="Parameterized Build Hook" i18n-name-key="multi-branch.name" key="multi-branch-build-hook" class="com.spear.bitbucket.multibranch.ParameterizedBuildHook">
+    <description key="multi-branch.description">Adds a build hook with customizable parameters for Jenkins</description>
+    <icon>images/icon.png</icon>
+    <config-form name="Parameterized Build Hook Config" key="multi-branch-hook-config">
+      <view>com.spear.bitbucket.multibranch.hook.view</view>
+      <directory location="/static/"/>
+    </config-form>
+  </repository-hook>
+  
+  <!-- Rest resource -->
+  <rest key="jenkins-rest" path="/multi-branch" version="1.0">
+    <dispatcher>REQUEST</dispatcher>
+    <dispatcher>FORWARD</dispatcher>
+    <init-param>
+      <param-name>extension.filter.excludes</param-name>
+      <param-value>.*</param-value>
+    </init-param>
+    <package>com.spear.bitbucket.multibranch.rest</package>
+  </rest>
+  
+  <!-- web items -->
+  <web-item key="pr-trigger-jenkins" name="Trigger Jenkins Build From Pull Request" weight="50" section="bitbucket.pull-request.toolbar.actions">
+    <conditions type="AND">
+      <condition class="com.atlassian.bitbucket.web.conditions.PullRequestInState">
+        <param name="state">OPEN</param>
+      </condition>
+      <condition class="com.spear.bitbucket.multibranch.conditions.HookIsEnabledCondition"/>
+      <condition class="com.spear.bitbucket.multibranch.conditions.ManualButtonCondition"/>
+    </conditions>
+    <label>Build in Jenkins</label>
+    <tooltip>Build branch in Jenkins</tooltip>
+    <styleClass>multi-branch-pullrequest</styleClass>
+    <dependency>${project.groupId}-${project.artifactId}:pb-pr-trigger-resource</dependency>
+  </web-item>
+  <client-web-item key="blayout-trigger-jenkins" name="Trigger Jenkins Builds From Branch Layout" section="bitbucket.branch.layout.actions.dropdown" weight="1000">
+    <label>Build in Jenkins</label>
+    <tooltip>Build branch in Jenkins</tooltip>
+    <styleClass>multi-branch-layout</styleClass>
+    <dependency>${project.groupId}.${project.artifactId}:pb-blayout-trigger-resource</dependency>
+    <client-condition>function(ctx) { return ctx.atRevisionRef.type.id === 'branch'}</client-condition>
+    <resource name="view" type="soy" location="${project.groupId}.${project.artifactId}:trigger-jenkins/com.spear.bitbucket.multibranch.jenkins.branchBuild.dialogContent"/>
+    <conditions type="AND">
+      <condition class="com.spear.bitbucket.multibranch.conditions.HookIsEnabledCondition"/>
+      <condition class="com.spear.bitbucket.multibranch.conditions.ManualButtonCondition"/>
+    </conditions>
+  </client-web-item>
+  <client-web-item key="blist-trigger-jenkins" name="Trigger Jenkins Builds From Branch List" section="bitbucket.branch.list.actions.dropdown" weight="1000">
+    <label>Build in Jenkins</label>
+    <tooltip>Build branch in Jenkins</tooltip>
+    <styleClass>multi-branch-branchlist</styleClass>
+    <dependency>${project.groupId}.${project.artifactId}:pb-blist-trigger-resource</dependency>
+    <conditions type="AND">
+      <condition class="com.spear.bitbucket.multibranch.conditions.HookIsEnabledCondition"/>
+      <condition class="com.spear.bitbucket.multibranch.conditions.ManualButtonCondition"/>
+    </conditions>
+  </client-web-item>
+  
+  <client-resource key="jenkins-admin-soy" name="Jenkins Admin Soy">
+    <directory location="/templates/" />
+    <dependency>com.atlassian.bitbucket.server.bitbucket-web:global</dependency>
+    <dependency>com.atlassian.bitbucket.server.bitbucket-web:server-soy-templates</dependency>
+  </client-resource>
+  <web-item name="Jenkins Admin Settings" key="jenkins-admin-tab" section="atl.admin/admin-plugins-section" weight="30">
+    <label>Jenkins Settings</label>
+    <link linkId="reminder-config-link">/plugins/servlet/jenkins</link>
+  </web-item>
+  <web-item name="Jenkins User Settings" key="jenkins-user-tab" section="bitbucket.user.account.nav" weight="200">
+    <label>Jenkins Settings</label>
+    <link>/plugins/servlet/account/jenkins</link>
+    <tooltip>Jenkins Settings</tooltip>
+  </web-item>
+  <servlet name="CI Servlet" i18n-name-key="ci-servlet.name" key="ci-servlet" class="com.spear.bitbucket.multibranch.ciserver.CIServlet">
+    <description key="ci-servlet.description">The CI Servlet Plugin</description>
+    <url-pattern>*/jenkins</url-pattern>
+  </servlet>
+</atlassian-plugin>
