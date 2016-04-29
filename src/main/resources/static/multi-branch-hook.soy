@@ -12,6 +12,8 @@
 		{let $configKeys: $config ? keys($config) : [] /}	
 		{let $visibleInputsCount: $configKeys.length - 1 > 0 ? (($configKeys.length - 1) / 6) : 1 /}
 		{let $projectName: $config['projectName'] ? $config['projectName'] : null /}
+		
+		
 		{call aui.form.textField}
 	        {param id: 'projectName' /}
 	        {param value: $projectName /}
@@ -19,7 +21,19 @@
         	{param errorTexts: $errors ? $errors['projectName'] : null /}
         	{param isRequired: true /}
 	    {/call}
-		{for $i in range($visibleInputsCount)}
+          {call aui.form.buttons}
+            {param content}
+	            {call widget.aui.form.button}
+    	            {param id: 'generateButton' /}
+    	            {param extraClasses: 'generate-button' /}
+        	        {param label: 'Generate Jenkins Job' /}
+            	    {param tooltip: 'Generate Jenkins Job' /}
+            	{/call}
+            {/param}
+        {/call}
+
+            	
+  	{for $i in range($visibleInputsCount)}
 			{call .addJob}
 				{param canDelete: $visibleInputsCount > 1 /}
 				{param count: $i /}

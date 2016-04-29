@@ -1,9 +1,25 @@
-(function($){
+define('jenkins/multi-branch-hook', [
+  'aui',
+  'jquery',
+  'bitbucket/internal/model/page-state',
+  'bitbucket/internal/util/ajax',
+  'aui/flag'
+], function(
+   _aui,
+   $,
+   pageState,
+   ajax,
+   flag
+) {
 
         //
         // functions
         //
 
+		function getResourceUrl(resourceType){
+			return _aui.contextPath() + '/rest/multi-branch/latest/projects/' + pageState.getProject().getKey() + '/repos/'
+			+ pageState.getRepository().getSlug() + '/' + resourceType;
+		}
         function updateTrigger (element, value, enable) {
         	var id = element.get(0).id.replace("job-", "");
 			var trigger = element.find('#triggers-' + id);
@@ -223,4 +239,38 @@
             }
             $(this).find('span').toggleClass("aui-lozenge-success");
         });
-}(AJS.$));
+        
+        $(document).on('click', '#generateButton', function(e) {
+        	ajax.rest({
+                url: getResourceUrl('generateJob'),
+                type: 'POST',
+                data: {
+                    'projectName': $("#projectName").val()
+                },
+               contentType : 'application/json',
+    		  async: true
+                
+            }).success(function (data) {
+            	if (data.status == 200) {
+            		flag({
+                        type: 'success',
+                        body: 'Job created',
+                        close: 'auto'
+                    });
+            	}
+            	else {
+            		flag({
+                        type: 'error',
+                        body: data.message,
+                        close: 'auto'
+                    });
+            		
+            	}
+            });
+        });
+        
+});
+
+AJS.$(document).ready(function() {
+    require('jenkins/multi-branch-hook');
+});

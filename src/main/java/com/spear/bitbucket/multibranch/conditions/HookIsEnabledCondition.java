@@ -43,6 +43,6 @@ public class HookIsEnabledCondition implements Condition {
 		final Repository repository = (Repository) obj;
 		RepositoryHook hook = settingsService.getHook(repository);
 		
-		return hook.isEnabled();
+		return hook != null && hook.isEnabled();
 	}
 }

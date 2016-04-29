@@ -19,6 +19,8 @@
   <component key="SettingsService" class="com.spear.bitbucket.multibranch.helper.SettingsService"/>
   <component key="PullRequestHook" class="com.spear.bitbucket.multibranch.PullRequestHook"/>
   <component key="Jenkins" class="com.spear.bitbucket.multibranch.ciserver.Jenkins"/>
+  <component-import key="sshScmProtocol" interface="com.atlassian.bitbucket.scm.ssh.SshScmProtocol"/>
+  <component-import key="httpScmProtocol" interface="com.atlassian.bitbucket.scm.http.HttpScmProtocol"/>
   
   <!-- add our web resources -->
   <web-resource key="multi-branch-resources" name="Parameterized Builds Web Resources">

@@ -1,17 +1,26 @@
 package com.spear.bitbucket.multibranch.ciserver;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
+import com.offbytwo.jenkins.JenkinsServer;
 import com.spear.bitbucket.multibranch.item.Job;
-import com.spear.bitbucket.multibranch.item.Server;
 import com.spear.bitbucket.multibranch.item.Job.Trigger;
+import com.spear.bitbucket.multibranch.item.Server;
 
 public class Jenkins {
 
@@ -23,10 +32,10 @@ public class Jenkins {
 		this.pluginSettings = factory.createSettingsForKey(PLUGIN_KEY);
 	}
 
-	public void setSettings(String url, String user, String token, boolean altUrl) {
+	public void setSettings(String url, String user, String token, boolean altUrl, String templatejobName) {
 		if (url != null && !url.isEmpty()) {
 			String altUrlString = altUrl ? "true" : "false";
-			pluginSettings.put(".jenkinsSettings", url + ";" + user + ";" + token + ";" + altUrlString);
+			pluginSettings.put(".jenkinsSettings", url + ";" + user + ";" + token + ";" + altUrlString + ";" + templatejobName);
 		} else {
 			pluginSettings.remove(".jenkinsSettings");
 		}
@@ -44,8 +53,8 @@ public class Jenkins {
 		Object settingObj = pluginSettings.get(".jenkinsSettings");
 		if (settingObj != null) {
 			String[] serverProps = settingObj.toString().split(";");
-			boolean altUrl = serverProps.length > 3 && serverProps[3].equals("true") ? true : false;
-			return new Server(serverProps[0], serverProps[1], serverProps[2], altUrl);
+			boolean altUrl = serverProps[3].equals("true") ? true : false;
+			return new Server(serverProps[0], serverProps[1], serverProps[2], altUrl, serverProps[4]);
 		} else {
 			return null;
 		}
@@ -97,6 +106,35 @@ public class Jenkins {
 		}
 
 	}
+	
+	public String[] generateMultiBranchJob(String repoURL, String repoName, String jenkinsJobName) {
+		// http://192.168.120.30:8080/view/All/createItem
+		// json:{"name": "a", "mode": "copy", "from": "BitBucket.MultiBranch.template"}
+		
+		String[] results = new String[2];
+		int status = 0;
+		Server server = getSettings();
+		if (server == null) {
+			return new String[] { "error", "Jenkins settings are not setup" };
+		}
+		
+		try {
+			JenkinsServer jenkins = new JenkinsServer(new URI(server.getBaseUrl()));
+			String templateXML = jenkins.getJobXml(server.getTemplatejobName());
+			String newJobXML = templateXML.replaceAll("\\$PROJECT_URL", repoURL);
+			if (jenkins.getJob(jenkinsJobName) != null) {
+				throw new Exception("Job with name " + jenkinsJobName + " already exists");
+			}
+			jenkins.createJob(jenkinsJobName, newJobXML);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new String[] {"error", e.getMessage()};
+		}
+		results[0] = "200";
+		results[1] = "Job created!";
+		return results;
+	}
 
 	public String[] httpPost(String buildUrl) {
 		buildUrl = buildUrl.replace(" ", "%20");
@@ -138,4 +176,5 @@ public class Jenkins {
 		results[1] = status + ": unknown error";
 		return results;
 	}
+
 }

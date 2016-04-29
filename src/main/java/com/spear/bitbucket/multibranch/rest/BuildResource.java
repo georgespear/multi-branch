@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -16,10 +17,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.poi.util.StringUtil;
+import org.json.JSONObject;
 
 import com.atlassian.plugins.rest.common.security.AnonymousAllowed;
 import com.spear.bitbucket.multibranch.ciserver.BuildInfo;
@@ -28,10 +31,12 @@ import com.spear.bitbucket.multibranch.helper.SettingsService;
 import com.spear.bitbucket.multibranch.item.Job;
 import com.spear.bitbucket.multibranch.item.Job.Trigger;
 import com.atlassian.bitbucket.i18n.I18nService;
+import com.atlassian.bitbucket.pull.PullRequest;
 import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.rest.util.ResourcePatterns;
 import com.atlassian.bitbucket.rest.RestResource;
 import com.atlassian.bitbucket.rest.util.RestUtils;
+import com.atlassian.bitbucket.scm.http.HttpScmProtocol;
 import com.atlassian.bitbucket.setting.Settings;
 import com.atlassian.bitbucket.auth.AuthenticationContext;
 import com.sun.jersey.spi.resource.Singleton;
@@ -48,15 +53,17 @@ public class BuildResource extends RestResource {
 	private SettingsService settingsService;
 	private Jenkins jenkins;
 	private final AuthenticationContext authenticationContext;
+	private final HttpScmProtocol httpScmProtocol;
 
 	public BuildResource(I18nService i18nService,
 			SettingsService settingsService, 
 			Jenkins jenkins,
-			AuthenticationContext authenticationContext) {
+			AuthenticationContext authenticationContext, HttpScmProtocol httpScmProtocol) {
 		super(i18nService);
 		this.settingsService = settingsService;
 		this.jenkins = jenkins;
 		this.authenticationContext = authenticationContext;
+		this.httpScmProtocol = httpScmProtocol;
 	}
 
 	@POST
@@ -85,6 +92,26 @@ public class BuildResource extends RestResource {
 			data.put("status", getResults[0]);
 			data.put("message", getResults[1]);
 			return Response.ok(data).build();
+		}
+		return null;
+	}
+	
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Path(value = "generateJob")
+	public Response generateJob(@Context final Repository repository, JobGenerator jobGenerator) {
+		if (authenticationContext.isAuthenticated()){
+			Map<String, String> data = new HashMap<String, String>();
+			Settings settings = settingsService.getSettings(repository);
+			if (settings == null){
+				return Response.status(404).build();
+			}
+			// String jenkinsProjectName = settingsService.getJenkinsProjectName(settings.asMap());
+			String[] response = jenkins.generateMultiBranchJob(httpScmProtocol.getCloneUrl(repository, null), repository.getName(), jobGenerator.getProjectName());
+			data.put("status", response[0]);
+			data.put("message", response[1]);
+			return Response.ok(data).build();
+
 		}
 		return null;
 	}
@@ -134,5 +161,16 @@ public class BuildResource extends RestResource {
 			desc = "Manual trigger for " + fromRef;
 		return new BuildInfo(fromRef, toRef,
 				queryParameters.getFirst("fromCommit"), queryParameters.getFirst("toCommit"), desc);
+	}
+	public static class JobGenerator {
+		private String projectName;
+
+		public String getProjectName() {
+			return projectName;
+		}
+
+		public void setProjectName(String projectName) {
+			this.projectName = projectName;
+		}
 	}
 }

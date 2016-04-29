@@ -14,7 +14,7 @@ import com.spear.bitbucket.multibranch.item.Job;
 import com.atlassian.bitbucket.user.SecurityService;
 
 public class SettingsService {
-	private static final String KEY = "com.spear.bitbucket.multibranch:multibranch-build-hook";
+	private static final String KEY = "com.spear.bitbucket.multi-branch:multi-branch-build-hook";
 	public static final String JOB_PREFIX = "jobName-";
 	public static final String TRIGGER_PREFIX = "triggers-";
 	public static final String TOKEN_PREFIX = "token-";
@@ -22,6 +22,8 @@ public class SettingsService {
 	public static final String BRANCH_PREFIX = "branchRegex-";
 	public static final String PATH_PREFIX = "pathRegex-";
 	public static final String JENKINS_PROJECT_NAME = "projectName";
+	public static final String JENKINS_TEMPLATE_JOB_NAME = "templatejobName";
+	
 	
 	private RepositoryHookService hookService;
 	private SecurityService securityService;
@@ -91,6 +93,11 @@ public class SettingsService {
 	}
 	
 	public String getJenkinsProjectName(final Map<String, Object> parameterMap) {
+		Object obj = parameterMap.get(JENKINS_PROJECT_NAME);
+		return obj != null ? obj.toString() : null; 
+	}
+	
+	public String getJenkinsTemplateJobName(final Map<String, Object> parameterMap) {
 		Object obj = parameterMap.get(JENKINS_PROJECT_NAME);
 		return obj != null ? obj.toString() : null; 
 	}

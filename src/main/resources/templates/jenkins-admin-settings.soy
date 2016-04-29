@@ -42,6 +42,12 @@
         {param isRequired: true /}
     {/call}
     {call aui.form.textField}
+	    {param id: 'templatejobName' /}
+        {param value: $server.templatejobName /}
+        {param labelContent: 'Jenkins Template Job'  /}
+        {param isRequired: true /}
+    {/call}    
+    {call aui.form.textField}
         {param id: 'jenkinsUser' /}
         {param value: $server.user /}
         {param labelContent: 'Default User'  /}
