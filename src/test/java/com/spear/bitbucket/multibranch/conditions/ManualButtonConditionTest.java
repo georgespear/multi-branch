@@ -32,7 +32,7 @@ public class ManualButtonConditionTest {
 		context = new HashMap<String, Object>();
 		context.put("repository", repository);
 
-		condition = new ManualButtonCondition(settingsService, pullRequestService);
+		condition = new ManualButtonCondition(pullRequestService);
 	}
 
 	@Test

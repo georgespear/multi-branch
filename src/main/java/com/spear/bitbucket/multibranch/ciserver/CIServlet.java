@@ -11,7 +11,6 @@ import com.atlassian.bitbucket.nav.NavBuilder;
 import com.atlassian.bitbucket.auth.AuthenticationContext;
 import com.atlassian.bitbucket.user.ApplicationUser;
 import com.google.common.collect.ImmutableMap;
-import com.spear.bitbucket.multibranch.item.Server;
 
 import java.io.IOException;
 import java.util.Map;
@@ -42,7 +41,7 @@ public class CIServlet extends HttpServlet{
     {
     	String pathInfo = req.getPathInfo();
     	if (authenticationContext.isAuthenticated()) {
-    		Server server = jenkins.getSettings();
+    		GlobalSettings server = jenkins.getSettings();
     		String baseUrl = server != null ? server.getBaseUrl() : null;
     		if (pathInfo.contains("/account/")) {
     			ApplicationUser appUser = authenticationContext.getCurrentUser();
@@ -103,7 +102,7 @@ public class CIServlet extends HttpServlet{
     		if (clear != null && clear.equals("on")){
     			jenkins.setSettings("", "", "", false, templatejobName);
     		} else if (jenkinsUrl.isEmpty()) {
-            	render(res, "jenkins.admin.settings", ImmutableMap.<String, Object>of("server", new Server(jenkinsUrl, jenkinsUser, jenkinsToken, jenkinsAltUrl, templatejobName), "errors", "Base URL required"));
+            	render(res, "jenkins.admin.settings", ImmutableMap.<String, Object>of("server", new GlobalSettings(jenkinsUrl, jenkinsUser, jenkinsToken, jenkinsAltUrl, templatejobName), "errors", "Base URL required"));
             	return;
     		} else {
     			jenkins.setSettings(jenkinsUrl, jenkinsUser, jenkinsToken, jenkinsAltUrl, templatejobName);

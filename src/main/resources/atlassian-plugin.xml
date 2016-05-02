@@ -64,7 +64,6 @@
       <transformer key="soyTransformer"/>
     </transformation>
     <resource name="build-dialog.js" type="download" location="/scripts/jenkins/feature/build-dialog.js"/>
-    <resource name="build-dialog.soy.js" type="download" location="/scripts/jenkins/feature/build-dialog.soy"/>
     <directory location="/scripts/jenkins/feature/"/>
     <dependency>com.atlassian.bitbucket.server.bitbucket-web:global</dependency>
     <dependency>com.atlassian.auiplugin:aui-flag</dependency>

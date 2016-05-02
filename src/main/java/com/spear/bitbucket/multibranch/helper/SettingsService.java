@@ -1,46 +1,42 @@
 package com.spear.bitbucket.multibranch.helper;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import com.atlassian.bitbucket.repository.Repository;
-import com.atlassian.bitbucket.setting.Settings;
-import com.atlassian.bitbucket.hook.repository.RepositoryHookService;
+import com.atlassian.bitbucket.event.hook.RepositoryHookEnabledEvent;
 import com.atlassian.bitbucket.hook.repository.RepositoryHook;
+import com.atlassian.bitbucket.hook.repository.RepositoryHookService;
 import com.atlassian.bitbucket.permission.Permission;
-import com.atlassian.bitbucket.util.Operation;
-import com.spear.bitbucket.multibranch.item.Job;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.scm.http.HttpScmProtocol;
+import com.atlassian.bitbucket.setting.Settings;
 import com.atlassian.bitbucket.user.SecurityService;
+import com.atlassian.bitbucket.util.Operation;
+import com.atlassian.event.api.EventListener;
+import com.spear.bitbucket.multibranch.ciserver.Jenkins;
+import com.spear.bitbucket.multibranch.ciserver.RepoSettings;
 
 public class SettingsService {
 	private static final String KEY = "com.spear.bitbucket.multi-branch:multi-branch-build-hook";
-	public static final String JOB_PREFIX = "jobName-";
-	public static final String TRIGGER_PREFIX = "triggers-";
-	public static final String TOKEN_PREFIX = "token-";
-	public static final String PARAM_PREFIX = "buildParameters-";
-	public static final String BRANCH_PREFIX = "branchRegex-";
-	public static final String PATH_PREFIX = "pathRegex-";
+	public static final String BRANCH_REGEX = "branchRegex-";
 	public static final String JENKINS_PROJECT_NAME = "projectName";
-	public static final String JENKINS_TEMPLATE_JOB_NAME = "templatejobName";
-	
-	
+
 	private RepositoryHookService hookService;
 	private SecurityService securityService;
+	private final HttpScmProtocol httpScmProtocol;
+	private Jenkins jenkins;
 
-	public SettingsService(RepositoryHookService hookService,
-			SecurityService securityService) {
+	public SettingsService(RepositoryHookService hookService, SecurityService securityService, HttpScmProtocol httpScmProtocol,
+			Jenkins jenkins) {
 		this.hookService = hookService;
 		this.securityService = securityService;
+		this.httpScmProtocol = httpScmProtocol;
+		this.jenkins = jenkins;
 	}
 
 	public Settings getSettings(final Repository repository) {
 
 		Settings settings = null;
 		try {
-			settings = securityService.withPermission(Permission.REPO_ADMIN,
-					"Get respository settings").call(
-					new Operation<Settings, Exception>() {
+			settings = securityService.withPermission(Permission.REPO_ADMIN, "Get respository settings")
+					.call(new Operation<Settings, Exception>() {
 						@Override
 						public Settings perform() throws Exception {
 							return hookService.getSettings(repository, KEY);
@@ -56,9 +52,8 @@ public class SettingsService {
 	public RepositoryHook getHook(final Repository repository) {
 		RepositoryHook hook = null;
 		try {
-			hook = securityService.withPermission(Permission.REPO_ADMIN,
-					"Get respository settings").call(
-					new Operation<RepositoryHook, Exception>() {
+			hook = securityService.withPermission(Permission.REPO_ADMIN, "Get respository settings")
+					.call(new Operation<RepositoryHook, Exception>() {
 						@Override
 						public RepositoryHook perform() throws Exception {
 							return hookService.getByKey(repository, KEY);
@@ -69,36 +64,21 @@ public class SettingsService {
 		}
 		return hook;
 	}
-	
-	public List<Job> getJobs(final Map<String, Object> parameterMap) {
-		if (parameterMap.keySet().isEmpty()){return null;}
-		List<Job> jobsList = new ArrayList<Job>();
-		for (String key : parameterMap.keySet()) {
-			if (key.startsWith(JOB_PREFIX)) {
-				
-				Job job = new Job
-						.JobBuilder(jobsList.size())
-						.jobName(parameterMap.get(key).toString())
-						.triggers(parameterMap.get(key.replace(JOB_PREFIX, TRIGGER_PREFIX)).toString().split(";"))
-						.buildParameters(parameterMap.get(key.replace(JOB_PREFIX, PARAM_PREFIX)).toString())
-						.token(parameterMap.get(key.replace(JOB_PREFIX, TOKEN_PREFIX)).toString())
-						.branchRegex(parameterMap.get(key.replace(JOB_PREFIX, BRANCH_PREFIX)).toString())
-						.pathRegex(parameterMap.get(key.replace(JOB_PREFIX, PATH_PREFIX)).toString())
-						.createJob();
-				
-				jobsList.add(job);
-			}
+
+	public RepoSettings getRepoSettings(Settings settings) {
+		if (settings == null) {
+			return null;
 		}
-		return jobsList;
+		return new RepoSettings(settings.getString(BRANCH_REGEX), settings.getString(JENKINS_PROJECT_NAME));
 	}
-	
-	public String getJenkinsProjectName(final Map<String, Object> parameterMap) {
-		Object obj = parameterMap.get(JENKINS_PROJECT_NAME);
-		return obj != null ? obj.toString() : null; 
+
+	@EventListener
+	public void onRepositoryHookEnabledEvent(RepositoryHookEnabledEvent event) {
+		Repository repository = event.getRepository();
+		String jenkinsProjectName = getRepoSettings(getSettings(repository)).getJenkinsProjectName();
+		jenkins.generateMultiBranchJob(httpScmProtocol.getCloneUrl(repository, null), repository.getName(), jenkinsProjectName);
+
+		// ...
 	}
-	
-	public String getJenkinsTemplateJobName(final Map<String, Object> parameterMap) {
-		Object obj = parameterMap.get(JENKINS_PROJECT_NAME);
-		return obj != null ? obj.toString() : null; 
-	}
+
 }

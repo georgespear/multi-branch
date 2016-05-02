@@ -1,13 +1,13 @@
-package com.spear.bitbucket.multibranch.item;
+package com.spear.bitbucket.multibranch.ciserver;
 
-public class Server {
+public class GlobalSettings {
 	private String baseUrl;
     private String user;
     private String token;
     private boolean altUrl;
     private String templatejobName;
 
-	public Server(String baseUrl, String user, String token, boolean altUrl, String templatejobName) {
+	public GlobalSettings(String baseUrl, String user, String token, boolean altUrl, String templatejobName) {
     	this.baseUrl = baseUrl;
     	this.user = user;
     	this.token = token;

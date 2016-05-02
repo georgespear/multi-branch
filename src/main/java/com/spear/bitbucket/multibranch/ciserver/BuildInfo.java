@@ -10,6 +10,9 @@ public class BuildInfo {
 		this.description = description;
 	}
 
+	public BuildInfo() {
+	}
+
 	/**
 	 * Not null, in case of pull request, indicates the FROM branch, otherwise the branch the build was triggered on.
 	 */
@@ -48,25 +51,44 @@ public class BuildInfo {
 		return sb.toString();
 	}
 
+	public void setFromRef(String fromRef) {
+		this.fromRef = fromRef;
+	}
+
 	public String getFromRef() {
 		return fromRef;
+	}
+
+	public void setToRef(String toRef) {
+		this.toRef = toRef;
 	}
 
 	public String getToRef() {
 		return toRef;
 	}
 
+	public void setFromCommit(String fromCommit) {
+		this.fromCommit = fromCommit;
+	}
+
 	public String getFromCommit() {
 		return fromCommit;
+	}
+
+	public void setToCommit(String toCommit) {
+		this.toCommit = toCommit;
 	}
 
 	public String getToCommit() {
 		return toCommit;
 	}
 
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	public String getDescription() {
 		return description;
 	}
-
 
 }

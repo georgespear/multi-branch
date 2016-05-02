@@ -142,11 +142,11 @@
             <scope>test</scope>
         </dependency>
 		<dependency>
-  			<groupId>com.offbytwo.jenkins</groupId>
-  			<artifactId>jenkins-client</artifactId>
-	  		<version>0.3.3</version>
-	  		<scope>compile</scope>
-		</dependency>        
+  			<groupId>org.jenkins-ci.main</groupId>
+  			<artifactId>cli</artifactId>
+  			<version>1.658</version>
+  			<scope>compile</scope>
+		</dependency>		       
     </dependencies>
     <build>
         <plugins>

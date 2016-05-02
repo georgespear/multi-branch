@@ -1,26 +1,24 @@
 package com.spear.bitbucket.multibranch.ciserver;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
-import com.google.common.base.Charsets;
-import com.google.common.io.CharStreams;
-import com.offbytwo.jenkins.JenkinsServer;
-import com.spear.bitbucket.multibranch.item.Job;
-import com.spear.bitbucket.multibranch.item.Job.Trigger;
-import com.spear.bitbucket.multibranch.item.Server;
+import com.spear.bitbucket.multibranch.helper.Trigger;
+
+import hudson.cli.CLI;
 
 public class Jenkins {
 
@@ -49,12 +47,12 @@ public class Jenkins {
 		}
 	}
 
-	public Server getSettings() {
+	public GlobalSettings getSettings() {
 		Object settingObj = pluginSettings.get(".jenkinsSettings");
 		if (settingObj != null) {
 			String[] serverProps = settingObj.toString().split(";");
 			boolean altUrl = serverProps[3].equals("true") ? true : false;
-			return new Server(serverProps[0], serverProps[1], serverProps[2], altUrl, serverProps[4]);
+			return new GlobalSettings(serverProps[0], serverProps[1], serverProps[2], altUrl, serverProps[4]);
 		} else {
 			return null;
 		}
@@ -76,9 +74,9 @@ public class Jenkins {
 		}
 	}
 
-	public String[] triggerJob(Job job, BuildInfo buildInfo, String jenkinsMultiProjectName, Trigger trigger) {
+	public String[] triggerJob(BuildInfo buildInfo, String jenkinsMultiProjectName, Trigger trigger) {
 		String buildUrl = "";
-		Server server = getSettings();
+		GlobalSettings server = getSettings();
 		if (server == null) {
 			return new String[] { "error", "Jenkins settings are not setup" };
 		}
@@ -108,24 +106,34 @@ public class Jenkins {
 	}
 	
 	public String[] generateMultiBranchJob(String repoURL, String repoName, String jenkinsJobName) {
-		// http://192.168.120.30:8080/view/All/createItem
-		// json:{"name": "a", "mode": "copy", "from": "BitBucket.MultiBranch.template"}
-		
 		String[] results = new String[2];
-		int status = 0;
-		Server server = getSettings();
+		GlobalSettings server = getSettings();
 		if (server == null) {
 			return new String[] { "error", "Jenkins settings are not setup" };
 		}
 		
 		try {
-			JenkinsServer jenkins = new JenkinsServer(new URI(server.getBaseUrl()));
-			String templateXML = jenkins.getJobXml(server.getTemplatejobName());
-			String newJobXML = templateXML.replaceAll("\\$PROJECT_URL", repoURL);
-			if (jenkins.getJob(jenkinsJobName) != null) {
-				throw new Exception("Job with name " + jenkinsJobName + " already exists");
-			}
-			jenkins.createJob(jenkinsJobName, newJobXML);
+			CLI jenkins = new CLI(new URL(server.getBaseUrl()));
+			jenkins.execute("copy-job", server.getTemplatejobName(), jenkinsJobName);
+			List<String> getJob = new ArrayList<>();
+			getJob.add("get-job");
+			getJob.add(jenkinsJobName);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			jenkins.execute(getJob, System.in, baos, System.err);
+			String xml = new String(baos.toByteArray());
+			List<String> updateJob = new ArrayList<>();
+			updateJob.add("update-job");
+			updateJob.add(jenkinsJobName);
+			xml = xml.replaceAll("\\$PROJECT_URL", repoURL);
+			ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes()); 
+			jenkins.execute(updateJob, bais, System.out, System.err);
+
+//			String templateXML = jenkins.getJobXml(server.getTemplatejobName());
+//			String newJobXML = templateXML.replaceAll("\\$PROJECT_URL", repoURL);
+//			if (jenkins.getJob(jenkinsJobName) != null) {
+//				throw new Exception("Job with name " + jenkinsJobName + " already exists");
+//			}
+//			jenkins.createJob(jenkinsJobName, newJobXML);
 
 		} catch (Exception e) {
 			e.printStackTrace();
