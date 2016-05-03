@@ -9,6 +9,7 @@ The builds are organized in folders, job per branch. Jobs are created automatica
 #Setting up Jenkins template job.
 
 For multi-repository builds, it's more convenient to setup a template job, which will be used for creating per-repository Jenkins folder jobs.
+
 1. Create a new 'Freestyle multi-branch project'. You can as well use 'Maven multi-branch project' for Maven projects. Name it as you prefer, e.g. 'Template.Bitbucket'
 2. In 'Source Code Management' block, choose Git, specifying $PROJECT_URL as 'Project Repository'. This placeholder will be replaced by actualy repository ssh url, when job is created out of template. Specify valid credentials.
 3. In 'Per Branch Configuration' -> 'Project Options and Properties' tick 'This build is parameterized' and add 5 parameters of type String.
@@ -22,7 +23,6 @@ DESCRIPTION. Default value if specified, will be used for the first build when a
 6. In 'Pre Steps' add 'Exexute shell' with the following script:
   %PATH_TO_GIT% checkout -f ${TO_REF}
   %PATH_TO_GIT% merge --ff ${FROM_COMMIT}*
-  
 7. *(Optional) In 'Post-build Actions' add 'Notify Stash Instance' (only if you installed the 'StashNotifier plugin'.
 Provide correct base url to your bitbucket server, credentials and put the ${FROM_COMMIT} in the 'Commit SHA-1'. *
 
@@ -32,6 +32,7 @@ For each repository, that needs to be configured to use this plugin, go to repos
 
 
 That's it. Once the plugin has been configured, the following events in SCM will trigger Jenkins.
+
 1) Branch created - creates a new job per branch.
 2) Branch deleted - deletes the corresponding job.
 3) Push to branch - triggers a build on a job, corresponding to this branch.
