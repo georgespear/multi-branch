@@ -33,11 +33,11 @@ For each repository, that needs to be configured to use this plugin, go to repos
 
 That's it. Once the plugin has been configured, the following events in SCM will trigger Jenkins.
 
-1) Branch created - creates a new job per branch.
-2) Branch deleted - deletes the corresponding job.
-3) Push to branch - triggers a build on a job, corresponding to this branch.
-4) Pull request created, re-opened, source or target branch changed - triggers a build or a merged source on a job, configured for a source branch.
-4) A buttons for manual triggering the build are added to branches and merge requests pages.
+1. Branch created - creates a new job per branch.
+2. Branch deleted - deletes the corresponding job.
+3. Push to branch - triggers a build on a job, corresponding to this branch.
+4. Pull request created, re-opened, source or target branch changed - triggers a build or a merged source on a job, configured for a source branch.
+5. A buttons for manual triggering the build are added to branches and merge requests pages.
 
 P.S.
 **The plugin's source code is heavily based on the https://github.com/KyleLNicholls/parameterized-builds. I used it as a template, iteratively removing the features i do not need, and adding new. **
