@@ -9,6 +9,7 @@ The builds are organized in folders, job per branch. Jobs are created automatica
 #Setting up Jenkins template job.
 
 For multi-repository builds, it's more convenient to setup a template job, which will be used for creating per-repository Jenkins folder jobs.
+
 1. Create a new 'Freestyle multi-branch project'. You can as well use 'Maven multi-branch project' for Maven projects. Name it as you prefer, e.g. 'Template.Bitbucket'
 2. In 'Source Code Management' block, choose Git, specifying $PROJECT_URL as 'Project Repository'. This placeholder will be replaced by actualy repository ssh url, when job is created out of template. Specify valid credentials.
 3. In 'Per Branch Configuration' -> 'Project Options and Properties' tick 'This build is parameterized' and add 5 parameters of type String.
