@@ -127,6 +127,8 @@ public class Jenkins {
 			xml = xml.replaceAll("\\$PROJECT_URL", repoURL);
 			ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes()); 
 			jenkins.execute(updateJob, bais, System.out, System.err);
+			
+			jenkins.execute("enable-job", jenkinsJobName);
 
 //			String templateXML = jenkins.getJobXml(server.getTemplatejobName());
 //			String newJobXML = templateXML.replaceAll("\\$PROJECT_URL", repoURL);

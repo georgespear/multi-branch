@@ -6,6 +6,7 @@ import com.atlassian.bitbucket.hook.repository.RepositoryHookService;
 import com.atlassian.bitbucket.permission.Permission;
 import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.scm.http.HttpScmProtocol;
+import com.atlassian.bitbucket.scm.ssh.SshScmProtocol;
 import com.atlassian.bitbucket.setting.Settings;
 import com.atlassian.bitbucket.user.SecurityService;
 import com.atlassian.bitbucket.util.Operation;
@@ -21,13 +22,15 @@ public class SettingsService {
 	private RepositoryHookService hookService;
 	private SecurityService securityService;
 	private final HttpScmProtocol httpScmProtocol;
+	private final SshScmProtocol sshScmProtocol;
 	private Jenkins jenkins;
 
-	public SettingsService(RepositoryHookService hookService, SecurityService securityService, HttpScmProtocol httpScmProtocol,
+	public SettingsService(RepositoryHookService hookService, SecurityService securityService, HttpScmProtocol httpScmProtocol, SshScmProtocol sshScmProtocol,
 			Jenkins jenkins) {
 		this.hookService = hookService;
 		this.securityService = securityService;
 		this.httpScmProtocol = httpScmProtocol;
+		this.sshScmProtocol = sshScmProtocol;
 		this.jenkins = jenkins;
 	}
 
@@ -76,7 +79,8 @@ public class SettingsService {
 	public void onRepositoryHookEnabledEvent(RepositoryHookEnabledEvent event) {
 		Repository repository = event.getRepository();
 		String jenkinsProjectName = getRepoSettings(getSettings(repository)).getJenkinsProjectName();
-		jenkins.generateMultiBranchJob(httpScmProtocol.getCloneUrl(repository, null), repository.getName(), jenkinsProjectName);
+		//jenkins.generateMultiBranchJob(httpScmProtocol.getCloneUrl(repository, null), repository.getName(), jenkinsProjectName);
+		jenkins.generateMultiBranchJob(sshScmProtocol.getCloneUrl(repository, null), repository.getName(), jenkinsProjectName);
 
 		// ...
 	}
