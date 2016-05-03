@@ -4,7 +4,7 @@ The builds are organized in folders, job per branch. Jobs are created automatica
 
 # Required Jenkins Plugins
 1. https://wiki.jenkins-ci.org/display/JENKINS/Multi-Branch+Project+Plugin
-2. _Optional, but recommended https://wiki.jenkins-ci.org/display/JENKINS/StashNotifier+Plugin_
+2. Optional, but recommended https://wiki.jenkins-ci.org/display/JENKINS/StashNotifier+Plugin
 
 #Setting up Jenkins template job.
 
@@ -19,12 +19,12 @@ FROM_COMMIT with default value ${GIT_COMMIT}
 TO_COMMIT with default value ${FROM_COMMIT}
 DESCRIPTION. Default value if specified, will be used for the first build when a job per branch is created.
 4. There is no need to modify 'Build Triggers' block, unless you want extra builds, e.g. based on schedule.
-5. _Optional. In 'Pre Steps' add 'Set build description' providing ${DESCRIPTION} value in 'Description' field.
+5. Optional. In 'Pre Steps' add 'Set build description' providing ${DESCRIPTION} value in 'Description' field.
 6. In 'Pre Steps' add 'Exexute shell' with the following script:
   %PATH_TO_GIT% checkout -f ${TO_REF}
-  %PATH_TO_GIT% merge --ff ${FROM_COMMIT}_
-7. _Optional. In 'Post-build Actions' add 'Notify Stash Instance' (only if you installed the 'StashNotifier plugin'.
-Provide correct base url to your bitbucket server, credentials and put the ${FROM_COMMIT} in the 'Commit SHA-1'. _
+  %PATH_TO_GIT% merge --ff ${FROM_COMMIT}
+7. Optional. In 'Post-build Actions' add 'Notify Stash Instance' (only if you installed the 'StashNotifier plugin'.
+Provide correct base url to your bitbucket server, credentials and put the ${FROM_COMMIT} in the 'Commit SHA-1'.
 
 #Setting up Bitbucket Server
 On the administration page of Bitbucket server, use the 'Jenkins Settings' link to provide the base URL of Jenkins and name of the template job, e.g. in our example - Template.Bitbucket
