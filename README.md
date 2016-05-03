@@ -19,11 +19,11 @@ FROM_COMMIT with default value ${GIT_COMMIT}
 TO_COMMIT with default value ${FROM_COMMIT}
 DESCRIPTION. Default value if specified, will be used for the first build when a job per branch is created.
 4. There is no need to modify 'Build Triggers' block, unless you want extra builds, e.g. based on schedule.
-5. _(Optional) In 'Pre Steps' add 'Set build description' providing ${DESCRIPTION} value in 'Description' field.
+5. _Optional. In 'Pre Steps' add 'Set build description' providing ${DESCRIPTION} value in 'Description' field.
 6. In 'Pre Steps' add 'Exexute shell' with the following script:
   %PATH_TO_GIT% checkout -f ${TO_REF}
   %PATH_TO_GIT% merge --ff ${FROM_COMMIT}_
-7. _(Optional) In 'Post-build Actions' add 'Notify Stash Instance' (only if you installed the 'StashNotifier plugin'.
+7. _Optional. In 'Post-build Actions' add 'Notify Stash Instance' (only if you installed the 'StashNotifier plugin'.
 Provide correct base url to your bitbucket server, credentials and put the ${FROM_COMMIT} in the 'Commit SHA-1'. _
 
 #Setting up Bitbucket Server
