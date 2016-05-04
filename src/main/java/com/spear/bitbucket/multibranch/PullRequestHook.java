@@ -70,15 +70,17 @@ public class PullRequestHook {
 		String prDest = pullRequest.getToRef().getDisplayId();
 		String destCommit = pullRequest.getToRef().getLatestCommit();
 		Settings settings = settingsService.getSettings(repository);
+
 		if (settings == null) {
 			return;
 		}
 		RepoSettings repoSettings = settingsService.getRepoSettings(settings);
 		String jenkinsProjectName = repoSettings.getJenkinsProjectName();
 
-		String userSlug = pullRequest.getAuthor().getUser().getSlug();
-
-		jenkins.triggerJob(new BuildInfo(branch, prDest, commit, destCommit, "Pull request rebuild for " + branch + " -> " + prDest),
-				jenkinsProjectName, trigger);
+		BuildInfo buildInfo = new BuildInfo(branch, prDest, commit, destCommit, "Pull request rebuild for " + branch + " -> " + prDest,
+				trigger);
+		buildInfo.setPrId(pullRequest.getId());
+		buildInfo.setPrTitle(pullRequest.getTitle());
+		jenkins.triggerJob(buildInfo, jenkinsProjectName);
 	}
 }

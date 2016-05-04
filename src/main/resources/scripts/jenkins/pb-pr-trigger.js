@@ -27,7 +27,9 @@ define('jenkins/multi-branch-pullrequest', [
 				fromRef :  prJSON.fromRef.displayId,
 				toRef :  prJSON.toRef.displayId,
 				fromCommit :  prJSON.fromRef.latestCommit,
-				toCommit : prJSON.toRef.latestCommit
+				toCommit : prJSON.toRef.latestCommit,
+				prId : prJSON.id,
+				prTitle : prJSON.title
 		};
     	var successFlag = flag({
             type: 'success',

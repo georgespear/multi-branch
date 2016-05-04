@@ -2,12 +2,9 @@ package com.spear.bitbucket.multibranch.ciserver;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +71,7 @@ public class Jenkins {
 		}
 	}
 
-	public String[] triggerJob(BuildInfo buildInfo, String jenkinsMultiProjectName, Trigger trigger) {
+	public String[] triggerJob(BuildInfo buildInfo, String jenkinsMultiProjectName) {
 		String buildUrl = "";
 		GlobalSettings server = getSettings();
 		if (server == null) {
@@ -84,6 +81,7 @@ public class Jenkins {
 		String ciServer = server.getBaseUrl();
 
 		buildUrl = ciServer + "/job/" + jenkinsMultiProjectName;
+		Trigger trigger = buildInfo.getTrigger();
 		logger.log(Level.INFO, "Triggered by event: " + trigger.name());
 		switch (trigger) {
 		case ADD:

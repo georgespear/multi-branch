@@ -36,9 +36,7 @@ public class BuildResource extends RestResource {
 	private Jenkins jenkins;
 	private final AuthenticationContext authenticationContext;
 
-	public BuildResource(I18nService i18nService,
-			SettingsService settingsService, 
-			Jenkins jenkins,
+	public BuildResource(I18nService i18nService, SettingsService settingsService, Jenkins jenkins,
 			AuthenticationContext authenticationContext) {
 		super(i18nService);
 		this.settingsService = settingsService;
@@ -49,12 +47,12 @@ public class BuildResource extends RestResource {
 	@POST
 	@Path(value = "triggerBuild")
 	public Response triggerBuild(@Context final Repository repository, BuildInfo buildInfo) {
-		if (authenticationContext.isAuthenticated()){
+		if (authenticationContext.isAuthenticated()) {
 			String[] getResults = new String[2];
 			Map<String, String> data = new HashMap<String, String>();
 			Settings settings = settingsService.getSettings(repository);
 
-			if (settings == null){
+			if (settings == null) {
 				return Response.status(404).build();
 			}
 			String jenkinsProjectName = settingsService.getRepoSettings(settings).getJenkinsProjectName();
@@ -63,16 +61,17 @@ public class BuildResource extends RestResource {
 				buildInfo.setDescription("Manual trigger for " + buildInfo.getFromRef() + " -> " + buildInfo.getToRef());
 			else
 				buildInfo.setDescription("Manual trigger for " + buildInfo.getFromRef());
-			
-			getResults = jenkins.triggerJob(buildInfo, jenkinsProjectName, Trigger.MANUAL);
-			
+
+			buildInfo.setTrigger(Trigger.MANUAL);
+			getResults = jenkins.triggerJob(buildInfo, jenkinsProjectName);
+
 			data.put("status", getResults[0]);
 			data.put("message", getResults[1]);
 			return Response.ok(data).build();
 		}
 		return null;
 	}
-	
+
 	public static class JobGenerator {
 		private String projectName;
 

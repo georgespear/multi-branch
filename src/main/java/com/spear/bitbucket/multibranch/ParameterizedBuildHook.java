@@ -39,8 +39,9 @@ public class ParameterizedBuildHook implements AsyncPostReceiveRepositoryHook, R
 			RepoSettings repoSettings = settingsService.getRepoSettings(context.getSettings());
 			String jenkinsProjectName = repoSettings.getJenkinsProjectName();
 			Trigger trigger = buildBranchCheck(refChange, branch, repoSettings.getBranchRegex());
-			jenkins.triggerJob(new BuildInfo(branch, null, commit, null, "Auto-triggered for branch " + branch), jenkinsProjectName,
-					trigger);
+			BuildInfo buildInfo = new BuildInfo(branch, null, commit, null, "Auto-triggered for branch " + branch, trigger);
+
+			jenkins.triggerJob(buildInfo, jenkinsProjectName);
 		}
 	}
 
