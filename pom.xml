@@ -176,8 +176,8 @@
         </plugins>
     </build>
     <properties>
-        <bitbucket.server.version>4.5.2</bitbucket.server.version>
-        <bitbucket.data.version>4.5.2</bitbucket.data.version>
+        <bitbucket.server.version>4.6.0</bitbucket.server.version>
+        <bitbucket.data.version>4.6.0</bitbucket.data.version>
         <amps.version>6.1.0</amps.version>
         <plugin.testrunner.version>1.2.0</plugin.testrunner.version>
     </properties>
