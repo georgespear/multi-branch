@@ -127,7 +127,7 @@ public class Jenkins {
 			jenkins.execute(updateJob, bais, System.out, System.err);
 			
 			jenkins.execute("enable-job", jenkinsJobName);
-			jenkins.execute("build", jenkinsJobName);
+			httpPost(server.getBaseUrl() + "/job/" + jenkinsJobName + "/build");
 
 //			String templateXML = jenkins.getJobXml(server.getTemplatejobName());
 //			String newJobXML = templateXML.replaceAll("\\$PROJECT_URL", repoURL);
