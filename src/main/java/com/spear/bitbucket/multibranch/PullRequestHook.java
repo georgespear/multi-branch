@@ -51,8 +51,8 @@ public class PullRequestHook {
 
 	@EventListener
 	public void onPullRequestMerged(PullRequestMergedEvent event) throws IOException {
-		PullRequest pullRequest = event.getPullRequest();
-		triggerFromPR(pullRequest, Trigger.PRMERGED);
+		//PullRequest pullRequest = event.getPullRequest();
+		//triggerFromPR(pullRequest, Trigger.PRMERGED);
 	}
 
 	@EventListener
