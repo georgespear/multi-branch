@@ -27,6 +27,7 @@ import com.spear.bitbucket.multibranch.helper.Trigger;
 public class ParameterizedBuildHook implements AsyncPostReceiveRepositoryHook, RepositorySettingsValidator {
 
 	private static final String REFS_HEADS = "refs/heads/";
+	private static final String REFS_TAGS = "refs/tags/";
 
 	private final SettingsService settingsService;
 	private final CommitService commitService;
@@ -44,7 +45,14 @@ public class ParameterizedBuildHook implements AsyncPostReceiveRepositoryHook, R
 	@Override
 	public void postReceive(RepositoryHookContext context, Collection<RefChange> refChanges) {
 		RepoSettings repoSettings = settingsService.getRepoSettings(context.getSettings());
+		System.err.println("--------------------");
+		System.err.println("Found " + refChanges.size() + " commits");
 		for (RefChange refChange : refChanges) {
+			System.err.println("Ref : " + refChange.getRef().getId());
+			if (refChange.getRef().getId().startsWith(REFS_TAGS)) {
+				System.err.println("Found tag... Ignoring");
+				continue;
+			}
 			String branch = refChange.getRef().getId().replace(REFS_HEADS, "");
 			String commit = refChange.getToHash();
 			
@@ -53,7 +61,12 @@ public class ParameterizedBuildHook implements AsyncPostReceiveRepositoryHook, R
                     .include(refChange.getToHash())
                     .exclude(refChange.getFromHash())
                     .build();
+			System.err.println("ToHash : " + refChange.getToHash());
+			System.err.println("FromHash : " + refChange.getFromHash());
+			System.err.println("Commits between: " + commitService.getCommitsBetween(changesetsBetweenRequest, PAGE_REQUEST).getSize());
+			System.err.println("Branch : " + branch);
 			Trigger trigger = buildBranchCheck(refChange, branch, repoSettings.getBranchRegex());
+			System.err.println(trigger.name());
 			if (refChange.getType() == RefChangeType.UPDATE && !checkCommitMessageValid(commitService.getCommitsBetween(changesetsBetweenRequest, PAGE_REQUEST)))
 				continue;
 
@@ -62,6 +75,7 @@ public class ParameterizedBuildHook implements AsyncPostReceiveRepositoryHook, R
 
 			jenkins.triggerJob(buildInfo, jenkinsProjectName);
 		}
+		System.err.println("--------------------");
 	}
 
 	private boolean checkCommitMessageValid(Page<Commit> commits) {
