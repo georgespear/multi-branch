@@ -63,7 +63,7 @@ public class PullRequestHook {
 
 	public void triggerFromPR(PullRequest pullRequest, Trigger trigger) throws IOException {
 		final Repository repository = pullRequest.getFromRef().getRepository();
-		if (pullRequestService.canMerge(repository.getId(), pullRequest.getId()).isConflicted())
+		if (pullRequest.isClosed() || pullRequestService.canMerge(repository.getId(), pullRequest.getId()).isConflicted())
 			return;
 		String branch = pullRequest.getFromRef().getDisplayId();
 		String commit = pullRequest.getFromRef().getLatestCommit();
