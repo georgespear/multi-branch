@@ -16,8 +16,9 @@ import com.spear.bitbucket.multibranch.ciserver.RepoSettings;
 
 public class SettingsService {
 	private static final String KEY = "com.spear.bitbucket.multi-branch:multi-branch-build-hook";
-	public static final String BRANCH_REGEX = "branchRegex-";
+	public static final String BRANCH_REGEX = "branchRegex";
 	public static final String JENKINS_PROJECT_NAME = "projectName";
+	public static final String SKIP_PR_FROM_BRANCH_BUILD = "skipPRFromBranchBuild";
 
 	private RepositoryHookService hookService;
 	private SecurityService securityService;
@@ -72,7 +73,7 @@ public class SettingsService {
 		if (settings == null) {
 			return null;
 		}
-		return new RepoSettings(settings.getString(BRANCH_REGEX), settings.getString(JENKINS_PROJECT_NAME));
+		return new RepoSettings(settings.getString(BRANCH_REGEX), settings.getString(JENKINS_PROJECT_NAME), settings.getBoolean(SKIP_PR_FROM_BRANCH_BUILD));
 	}
 
 	@EventListener

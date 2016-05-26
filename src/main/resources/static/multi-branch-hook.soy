@@ -12,6 +12,8 @@
 		{let $configKeys: $config ? keys($config) : [] /}	
 		{let $projectName: $config['projectName'] ? $config['projectName'] : null /}
 		{let $branchRegex: $config['branchRegex'] ? $config['branchRegex'] : null /}
+		{let $skipPRFromBranchBuild: $config['skipPRFromBranchBuild'] ? $config['skipPRFromBranchBuild'] == true : false /}
+		
 		
 		
 		{call aui.form.textField}
@@ -29,7 +31,13 @@
 	        {param extraClass: 'long-field' /}
 			{param fieldWidth: 'full-width' /}
         	{param descriptionText: 'Trigger builds for only matched branches (example: "release.*|hotfix.*|production").' /}
-	    {/call}	    
+	    {/call}
+	    	    
+	    {call widget.aui.form.checkbox}
+    		{param id:'skipPRFromBranchBuild' /}
+			{param checked: $skipPRFromBranchBuild /}
+    		{param labelContent: 'Skip builds on branches, if a merge request from this branch exists' /}
+    	{/call}
             	
 	</div>
 {/template}

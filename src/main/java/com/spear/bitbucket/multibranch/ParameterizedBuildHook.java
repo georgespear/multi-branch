@@ -9,6 +9,10 @@ import com.atlassian.bitbucket.commit.CommitService;
 import com.atlassian.bitbucket.commit.CommitsBetweenRequest;
 import com.atlassian.bitbucket.hook.repository.AsyncPostReceiveRepositoryHook;
 import com.atlassian.bitbucket.hook.repository.RepositoryHookContext;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestSearchRequest;
+import com.atlassian.bitbucket.pull.PullRequestService;
+import com.atlassian.bitbucket.pull.PullRequestState;
 import com.atlassian.bitbucket.repository.RefChange;
 import com.atlassian.bitbucket.repository.RefChangeType;
 import com.atlassian.bitbucket.repository.Repository;
@@ -31,15 +35,17 @@ public class ParameterizedBuildHook implements AsyncPostReceiveRepositoryHook, R
 
 	private final SettingsService settingsService;
 	private final CommitService commitService;
+	private final PullRequestService pullRequestService;
 	private final Jenkins jenkins;
 	private static final PageRequestImpl PAGE_REQUEST = new PageRequestImpl(0, 100);
 	private static final String MAVEN_RELEASE_IGNORE_PATTERN = "[maven-release-plugin]";
 	
 
-	public ParameterizedBuildHook(SettingsService settingsService, CommitService commitService, Jenkins jenkins) {
+	public ParameterizedBuildHook(SettingsService settingsService, CommitService commitService, Jenkins jenkins, PullRequestService pullRequestService) {
 		this.settingsService = settingsService;
 		this.commitService = commitService;
 		this.jenkins = jenkins;
+		this.pullRequestService = pullRequestService;
 	}
 
 	@Override
@@ -65,6 +71,10 @@ public class ParameterizedBuildHook implements AsyncPostReceiveRepositoryHook, R
 			System.err.println("FromHash : " + refChange.getFromHash());
 			System.err.println("Commits between: " + commitService.getCommitsBetween(changesetsBetweenRequest, PAGE_REQUEST).getSize());
 			System.err.println("Branch : " + branch);
+			if (checkSkipPRFromBranchBuild(branch, repoSettings)) {
+				System.err.println("Skipping branch, because pull request exists");
+				continue;
+			}
 			Trigger trigger = buildBranchCheck(refChange, branch, repoSettings.getBranchRegex());
 			System.err.println(trigger.name());
 			if (refChange.getType() == RefChangeType.UPDATE && !checkCommitMessageValid(commitService.getCommitsBetween(changesetsBetweenRequest, PAGE_REQUEST)))
@@ -124,5 +134,14 @@ public class ParameterizedBuildHook implements AsyncPostReceiveRepositoryHook, R
 			errors.addFieldError(SettingsService.BRANCH_REGEX, branchExecption.getDescription());
 		}
 
+	}
+	
+	private boolean checkSkipPRFromBranchBuild(String branch, RepoSettings repoSettings) {
+		
+		Page<PullRequest> searchFrom = pullRequestService.search(new PullRequestSearchRequest.Builder().fromRefId(REFS_HEADS + branch).state(PullRequestState.OPEN).build(), PAGE_REQUEST);
+				
+		if (repoSettings.isSkipPRFromBranchBuild() && searchFrom.getSize() > 0)
+			return true;
+		else return false;
 	}
 }
