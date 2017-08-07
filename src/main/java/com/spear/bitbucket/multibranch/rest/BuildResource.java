@@ -12,12 +12,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.atlassian.bitbucket.auth.AuthenticationContext;
+import com.atlassian.bitbucket.hook.repository.RepositoryHookSettings;
 import com.atlassian.bitbucket.i18n.I18nService;
 import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.rest.RestResource;
 import com.atlassian.bitbucket.rest.util.ResourcePatterns;
 import com.atlassian.bitbucket.rest.util.RestUtils;
-import com.atlassian.bitbucket.setting.Settings;
+import com.atlassian.bitbucket.scope.RepositoryScope;
 import com.atlassian.plugins.rest.common.security.AnonymousAllowed;
 import com.spear.bitbucket.multibranch.ciserver.BuildInfo;
 import com.spear.bitbucket.multibranch.ciserver.Jenkins;
@@ -50,12 +51,12 @@ public class BuildResource extends RestResource {
 		if (authenticationContext.isAuthenticated()) {
 			String[] getResults = new String[2];
 			Map<String, String> data = new HashMap<String, String>();
-			Settings settings = settingsService.getSettings(repository);
+			RepositoryHookSettings settings = settingsService.getSettings(new RepositoryScope(repository));
 
 			if (settings == null) {
 				return Response.status(404).build();
 			}
-			String jenkinsProjectName = settingsService.getRepoSettings(settings).getJenkinsProjectName();
+			String jenkinsProjectName = settingsService.getRepoSettings(settings.getSettings()).getJenkinsProjectName();
 
 			if (buildInfo.getToRef() != null && !buildInfo.getToRef().trim().equals(""))
 				buildInfo.setDescription("Manual trigger for " + buildInfo.getFromRef() + " -> " + buildInfo.getToRef());

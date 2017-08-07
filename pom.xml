@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.spear.bitbucket</groupId>
     <artifactId>multi-branch</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>5.2-SNAPSHOT</version>
 
 	<organization>
 		<name>George Lezhava</name>
@@ -176,10 +176,10 @@
         </plugins>
     </build>
     <properties>
-        <bitbucket.server.version>4.6.0</bitbucket.server.version>
-        <bitbucket.data.version>4.6.0</bitbucket.data.version>
-        <amps.version>6.1.0</amps.version>
-        <plugin.testrunner.version>1.2.0</plugin.testrunner.version>
+        <bitbucket.server.version>5.2.2</bitbucket.server.version>
+        <bitbucket.data.version>5.2.2</bitbucket.data.version>
+        <amps.version>6.2.11</amps.version>
+        <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
     </properties>
     <scm>
         <connection>scm:git:ssh://git@sf-source.citrite.net:7999/build/conditional-build-trigger.git</connection>
